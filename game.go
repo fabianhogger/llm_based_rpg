@@ -17,6 +17,11 @@ var (
 	playerSprite rl.Texture2D
 	playersrc rl.Rectangle
 	playerdest rl.Rectangle
+	tileSrc rl.Rectangle 
+	tileDest rl.Rectangle
+	tileMap []int 
+	srcMap []string
+	mapW,mapH int
 	music rl.Music
 	musicPaused bool
 	playerFramecnt=0
@@ -24,16 +29,30 @@ var (
 	playerIsMoving= false
 	playerDir=0
 	val=1
+	
+
 )
 
 func drawScene(){
+	for i:=0; i<len(tileMap); i++{
+		if tileMap[i]!=0{
+			tileDest.X = tileDest.Width * float32(i %mapW)
+			tileDest.Y = tileDest.Height * float32(i/mapW)
+			tileSrc.X = tileSrc.Width * float32((tileMap[i]-1) % int(grassSprite.Width/int32(tileSrc.Width)))
+			tileSrc.Y = tileSrc.Height * float32((tileMap[i]-1)/int(grassSprite.Width/int32(tileSrc.Width)))
+  		rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
+ 
+	   }
+	 }	
+
+
 	rl.DrawTexture(grassSprite,100,100,rl.White)
 	rl.DrawTexturePro(playerSprite,playersrc,playerdest, rl.NewVector2(playerdest.Width,	playerdest.Height),1,rl.White)
 	/*debugg*/
 	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,playerFramecnt,val)
 	rl.DrawText(debug_text,150,50,10,rl.White)
-  
-}
+  }
+
 func input(){
 
 
@@ -115,10 +134,19 @@ func render(){
 	drawScene()
 	rl.EndDrawing()
 }
+func loadMap(){
+	mapW =5
+	mapH =5
+	for i:=0;i<(mapW*mapH);i++{
+		tileMap = append(tileMap,i)
+	}
+}
+
 func init(){	
 	rl.InitWindow(800, 450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
+	loadMap()
   grassSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
   playerSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
   playersrc  =  rl.NewRectangle(0,0,48, 48)
@@ -127,6 +155,8 @@ func init(){
   music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
   rl.PlayMusicStream(music)
   musicPaused= false
+  tileDest = rl.NewRectangle(0,0,16,16)
+  tileSrc = rl.NewRectangle(0,0,16,16)
 }
 func quit(){
 	rl.UnloadTexture(grassSprite)
