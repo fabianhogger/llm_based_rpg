@@ -4,6 +4,10 @@ package main
 import (
 	  rl "github.com/gen2brain/raylib-go/raylib"
 	  "fmt"
+	  "io/ioutil"
+	  "os"
+	  "strings"
+	  "strconv"
 )
 const (
 	screenWidth = 480
@@ -29,27 +33,33 @@ var (
 	playerIsMoving= false
 	playerDir=0
 	val=1
-	
+	mapFile= "/home/fabian/Documents/GO/SproutLands/map/grassmap2.csv"
 
 )
 
 func drawScene(){
 	for i:=0; i<len(tileMap); i++{
-		if tileMap[i]!=0{
-			tileDest.X = tileDest.Width * float32(i %mapW)
-			tileDest.Y = tileDest.Height * float32(i/mapW)
-			tileSrc.X = tileSrc.Width * float32((tileMap[i]-1) % int(grassSprite.Width/int32(tileSrc.Width)))
-			tileSrc.Y = tileSrc.Height * float32((tileMap[i]-1)/int(grassSprite.Width/int32(tileSrc.Width)))
-  		rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
+ 	    debug_text:=fmt.Sprintf("x, %d,y %d,i %d ",int(tileSrc.X),tileSrc.Y,i)
+	    rl.DrawText(debug_text,250,70+(int32(i)*10),10,rl.White)
+
+			tileDest.X = tileDest.Width * float32(i %30)
+			tileDest.Y  = tileDest.Height * float32(int(i)/int(20))
  
-	   }
-	 }	
+	    tileSrc.X = tileSrc.Width * float32(tileMap[i] % int(grassSprite.Width/int32(tileSrc.Width)))
+			tileSrc.Y = tileSrc.Height * float32(tileMap[i]/int(grassSprite.Width/int32(tileSrc.Width)))
+			  		rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
+
+  	 }
+ 
+ 
+ 
+ 
 
 
-	rl.DrawTexture(grassSprite,100,100,rl.White)
+	//rl.DrawTexture(grassSprite,100,100,rl.White)
 	rl.DrawTexturePro(playerSprite,playersrc,playerdest, rl.NewVector2(playerdest.Width,	playerdest.Height),1,rl.White)
 	/*debugg*/
-	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,playerFramecnt,val)
+	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,playerFramecnt,grassSprite.Width)
 	rl.DrawText(debug_text,150,50,10,rl.White)
   }
 
@@ -134,19 +144,39 @@ func render(){
 	drawScene()
 	rl.EndDrawing()
 }
-func loadMap(){
-	mapW =5
-	mapH =5
-	for i:=0;i<(mapW*mapH);i++{
-		tileMap = append(tileMap,i)
+func loadMap(mapFile string){
+	file,err:= ioutil.ReadFile(mapFile)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
+	remNewLines := strings.Replace(string(file),"\n",",",-1)
+	sliced := strings.Split(remNewLines,",")
+	fmt.Println(sliced)
+	fmt.Println(len(sliced))
+	mapW =-1
+	mapH =-1
+
+	for i:=0;i<len(sliced);i++{
+		s,_:= strconv.ParseInt(sliced[i],10,64)
+		fmt.Println("ssssss",s)
+
+		m := int(s)
+		fmt.Println("REEE")
+
+			tileMap = append(tileMap, m)
+
+			fmt.Println("MMMMM",m)
+
+	}
+  fmt.Println("tileMap",tileMap)
+
 }
 
 func init(){	
-	rl.InitWindow(800, 450, "raylib [core] example - basic window")
+	rl.InitWindow(1800, 1450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
-	loadMap()
   grassSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
   playerSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
   playersrc  =  rl.NewRectangle(0,0,48, 48)
@@ -154,9 +184,11 @@ func init(){
   rl.InitAudioDevice()
   music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
   rl.PlayMusicStream(music)
-  musicPaused= false
+  musicPaused= true
   tileDest = rl.NewRectangle(0,0,16,16)
   tileSrc = rl.NewRectangle(0,0,16,16)
+ 	loadMap(mapFile)
+
 }
 func quit(){
 	rl.UnloadTexture(grassSprite)
