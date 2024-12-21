@@ -38,16 +38,17 @@ var (
 )
 
 func drawScene(){
-	for i:=0; i<len(tileMap); i++{
- 	    debug_text:=fmt.Sprintf("x, %d,y %d,i %d ",int(tileSrc.X),tileSrc.Y,i)
-	    rl.DrawText(debug_text,250,70+(int32(i)*10),10,rl.White)
+	for i:=1; i<len(tileMap); i++{
+ 	    debug_text:=fmt.Sprintf("x, %d,y %d,i %d,framecount %d ",int(tileSrc.X),tileSrc.Y,i,Framecount)
+	    rl.DrawText(debug_text,450,70+(int32(i)*10),10,rl.White)
 
 			tileDest.X = tileDest.Width * float32(i %30)
-			tileDest.Y  = tileDest.Height * float32(int(i)/int(20))
- 
-	    tileSrc.X = tileSrc.Width * float32(tileMap[i] % int(grassSprite.Width/int32(tileSrc.Width)))
-			tileSrc.Y = tileSrc.Height * float32(tileMap[i]/int(grassSprite.Width/int32(tileSrc.Width)))
-			  		rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
+			tileDest.Y  = tileDest.Height * float32(int(i)/int(30))
+ //float32(tileMap[i] % int(grassSprite.Width/int32(tileSrc.Width)))
+ // float32(tileMap[i]/int(grassSprite.Width/int32(tileSrc.Width)))
+	    tileSrc.X = tileSrc.Width * float32(tileMap[i]) 
+			tileSrc.Y = tileSrc.Height *float32((tileMap[i])/int(grassSprite.Width/int32(tileSrc.Width)))
+			rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
 
   	 }
  
