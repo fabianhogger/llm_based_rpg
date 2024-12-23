@@ -31,29 +31,18 @@ type Npc struct{
 
 }
 
-type Map struct{
+type Layer struct{
 	mapSprite    rl.Texture2D
 	tileSrc      rl.Rectangle 
 	tileDest     rl.Rectangle
     tileMap []int 
 	srcMap []string
     Borderpos []  rl.Rectangle  
-
+    mapFile string
 	
 }
 var (
-		npcSprite rl.Texture2D 
-	npcsrc       rl.Rectangle
-	npcdest   rl.Rectangle
-		mapSprite    rl.Texture2D
-	tileSrc      rl.Rectangle 
-	tileDest     rl.Rectangle
-    tileMap []int 
-	srcMap []string
-	grassSprite rl.Texture2D 
-
-    Borderpos []  rl.Rectangle  
-	running = true
+ 	running = true
 	BkgrColor = rl.NewColor(147,211,196,255)
 	mapborder bool=true
 	borderlist=[8]int{0,1,2,11,13,22,23,24}
@@ -64,6 +53,8 @@ var (
 	Framecount=0
     mapFile= "/home/fabian/Documents/GO/SproutLands/map/grassmap2.csv"
     player Player 
+    layer Layer
+    rogue Npc 
 )
 func contains(borders [8]int, element int) bool {
     for _, item := range borders {
@@ -73,32 +64,38 @@ func contains(borders [8]int, element int) bool {
     }
     return false
 }
-
-func drawScene(){
-	for i:=1; i<len(tileMap); i++{
-			tileDest.X = tileDest.Width * float32(i %30)
-			tileDest.Y  = tileDest.Height * float32(int(i)/int(30))
-	        tileSrc.X = tileSrc.Width * float32(tileMap[i]) 
-			tileSrc.Y = tileSrc.Height *float32((tileMap[i])/int(grassSprite.Width/int32(tileSrc.Width)))
-
-			if (contains(borderlist,tileMap[i])==true){
+func drawLayer(){
+	for i:=1; i<len(layer.tileMap); i++{
+			layer.tileDest.X = layer.tileDest.Width * float32(i %30)
+			layer.tileDest.Y  = layer.tileDest.Height * float32(int(i)/int(30))
+	        layer.tileSrc.X = layer.tileSrc.Width * float32(layer.tileMap[i]) 
+			layer.tileSrc.Y = layer.tileSrc.Height *float32((layer.tileMap[i])/int(layer.mapSprite.Width/int32(layer.tileSrc.Width)))
+			var borderArr []rl.Rectangle
+			if contains(borderlist,layer.tileMap[i]){
 				if mapborder{
-				border:=rl.NewRectangle(tileDest.X/2,tileDest.Y/2,16,16)
-				Borderpos= append(Borderpos ,border)
+
+				border:=rl.NewRectangle(layer.tileDest.X/2,layer.tileDest.Y/2,16,16)
+				borderArr= append(borderArr ,border)
   				}
-		    rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.Red)
+		    rl.DrawTexturePro(layer.mapSprite,layer.tileSrc,layer.tileDest, rl.NewVector2(layer.tileDest.Width,	layer.tileDest.Height),1,rl.Red)
 			}else{
-		    rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
+		    rl.DrawTexturePro(layer.mapSprite,layer.tileSrc,layer.tileDest, rl.NewVector2(layer.tileDest.Width,	layer.tileDest.Height),1,rl.White)
           }
+         if mapborder {layer.Borderpos=borderArr}
  
   	 }
- 	rl.DrawTexturePro(npcSprite,npcsrc,npcdest, rl.NewVector2(npcdest.Width,	npcdest.Height),1,rl.White)
+}
+func drawScene(){
+	drawLayer()
+	
+  	 mapborder=false
+ 	rl.DrawTexturePro(rogue.npcSprite,rogue.npcsrc,rogue.npcdest, rl.NewVector2(rogue.npcdest.Width,rogue.npcdest.Height),1,rl.White)
  	//rl.DrawTexture(grassSprite,100,100,rl.White)
 	rl.DrawTexturePro(player.playerSprite,player.playersrc,player.playerdest, rl.NewVector2(player.playerdest.Width,player.playerdest.Height),1,rl.White)
 	rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width/2),int32(player.playerRec.Height/2),rl.Green)
  
 	/*debugg*/
-	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,player.playerFramecnt,grassSprite.Width)
+	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,player.playerFramecnt,layer.mapSprite.Width)
 	rl.DrawText(debug_text,150,50,10,rl.White)
   }
 
@@ -138,9 +135,9 @@ func update(){
 	//collision
 	fmt.Println("upd")
 	collision:=false
-	for i:=1;i<len(Borderpos);i++{
-  if(rl.CheckCollisionRecs(player.playerRec,Borderpos[i])){
-  	fmt.Println("col")
+	for i:=1;i<len(layer.Borderpos);i++{
+    if(rl.CheckCollisionRecs(player.playerRec,layer.Borderpos[i])){
+  	fmt.Println("collllll")
 
   	switch(player.playerDir){
   	case 0:
@@ -194,7 +191,6 @@ func update(){
   }  
 
 }
-	player.playerRec=rl.NewRectangle(player.playerdest.X/2,player.playerdest.Y/2,100,100)
 
 //idle animation
 	if !player.playerIsMoving && Framecount%45==1{
@@ -221,7 +217,7 @@ func render(){
 	drawScene()
 	rl.EndDrawing()
 }
-func loadMap(mapFile string){
+func loadMap(mapFile string) []int{
 	file,err:= ioutil.ReadFile(mapFile)
 	if err != nil {
 		fmt.Println(err)
@@ -229,46 +225,45 @@ func loadMap(mapFile string){
 	}
 	remNewLines := strings.Replace(string(file),"\n",",",-1)
 	sliced := strings.Split(remNewLines,",")
-	fmt.Println(sliced)
-	fmt.Println(len(sliced))
-	mapW =-1
-	mapH =-1
-
+	var tileMaparr []int
 	for i:=0;i<len(sliced);i++{
 		s,_:= strconv.ParseInt(sliced[i],10,64)
- 
 		m := int(s)
- 
-			tileMap = append(tileMap, m)
+		tileMaparr = append(tileMaparr, m)
 
- 
 	}
+	return tileMaparr
  
 }
 
 func init(){	
-	rl.InitWindow(1800, 1450, "raylib [core] example - basic window")
+	rl.InitWindow(800, 450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
 
   player.playerSprite =rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
   player.playersrc=rl.NewRectangle(0,0,48, 48)
   player.playerdest=rl.NewRectangle(200,350,100,100)
-  grassSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
-   npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
-  npcsrc  =  rl.NewRectangle(0,0,32, 32)
-  npcdest = rl.NewRectangle(230,500,100,100)
+  //init npc
+  rogue.npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
+  rogue.npcsrc  =  rl.NewRectangle(0,0,32, 32)
+  rogue.npcdest = rl.NewRectangle(230,500,100,100)
+  //music
   rl.InitAudioDevice()
   music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
   rl.PlayMusicStream(music)
   musicPaused= true
-  tileDest = rl.NewRectangle(0,0,16,16)
-  tileSrc = rl.NewRectangle(0,0,16,16)
- 	loadMap(mapFile)
+  //music
+  //map
+  layer.mapSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
+  layer.tileDest = rl.NewRectangle(0,100,16,16)
+  layer.tileSrc = rl.NewRectangle(0,0,16,16)
+  layer.tileMap=loadMap(mapFile)
+  //map
 
 }
 func quit(){
-	rl.UnloadTexture(grassSprite)
+	rl.UnloadTexture(layer.mapSprite)
 	rl.UnloadTexture(player.playerSprite)
 	rl.CloseWindow()
 }
