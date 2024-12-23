@@ -1,1 +1,0 @@
-![map](grassmap1.png)
