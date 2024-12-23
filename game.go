@@ -136,71 +136,60 @@ func update(){
 	fmt.Println("upd")
 	collision:=false
 	for i:=1;i<len(layer.Borderpos);i++{
-    if(rl.CheckCollisionRecs(player.playerRec,layer.Borderpos[i])){
-  	fmt.Println("collllll")
-
-  	switch(player.playerDir){
-  	case 0:
-		 player.playerdest.Y-=player.playerdest.Height
-		 player.playerRec.Y-=player.playerRec.Height
-
-    case 1:
-		 player.playerdest.Y+=player.playerdest.Height
-		 player.playerRec.Y+=player.playerRec.Height
-
-
-    case 2:
-	  	player.playerdest.X+=player.playerdest.Width
-	  	player.playerRec.X+=player.playerRec.Width
-
-    case 3:
-		player.playerdest.X-=player.playerdest.Width
-		player.playerRec.X-=player.playerRec.Width
-
-  	
-  }
-  collision=true
-
-  break
- }
-}
+  		if(rl.CheckCollisionRecs(player.playerRec,layer.Borderpos[i])){
+	  		fmt.Println("collllll")
+		  	switch(player.playerDir){
+			  	case 0:
+					 player.playerdest.Y-=player.playerdest.Height
+					 player.playerRec.Y-=player.playerRec.Height
+			    case 1:
+					 player.playerdest.Y+=player.playerdest.Height
+					 player.playerRec.Y+=player.playerRec.Height
+			    case 2:
+				  	player.playerdest.X+=player.playerdest.Width
+				  	player.playerRec.X+=player.playerRec.Width
+			    case 3:
+					player.playerdest.X-=player.playerdest.Width
+					player.playerRec.X-=player.playerRec.Width
+  			}
+		collision=true
+ 		break
+ 		}
+	}
 
 	Framecount++
 	if Framecount==65 {Framecount=0}
 	if player.playerIsMoving && !collision{
-	switch(player.playerDir){
-	case 0:
-		player.playerdest.Y+=playerSpeed	
-		player.playerRec.Y+=playerSpeed	
+		switch(player.playerDir){
+			case 0:
+				player.playerdest.Y+=playerSpeed	
+				player.playerRec.Y+=playerSpeed	
 
-  case 1:
-		player.playerdest.Y-=playerSpeed	
-		player.playerRec.Y+=playerSpeed	
+		  	case 1:
+				player.playerdest.Y-=playerSpeed	
+				player.playerRec.Y+=playerSpeed	
 
-  case 2:
-		player.playerdest.X-=playerSpeed	
-		player.playerRec.Y+=playerSpeed	
+		  	case 2:
+				player.playerdest.X-=playerSpeed	
+				player.playerRec.Y+=playerSpeed	
 
-  case 3:
-		player.playerdest.X+=playerSpeed
-		player.playerRec.Y+=playerSpeed	
-	
-	}
-	if  Framecount%8==1 { 
+		  	case 3:
+				player.playerdest.X+=playerSpeed
+				player.playerRec.Y+=playerSpeed	
+		
+		}
+	if Framecount%8==1 { 
 		player.playerFramecnt++
-  }  
-
-}
-
-//idle animation
+  	}  
+	}
+	//idle animation
 	if !player.playerIsMoving && Framecount%45==1{
 		if 	player.playerFramecnt==1{
 			player.playerFramecnt=0
 		}else{
 			player.playerFramecnt=1
 		} 
-
-}
+	}
 
 	
 	if player.playerFramecnt>3  {
@@ -240,27 +229,24 @@ func init(){
 	rl.InitWindow(800, 450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
-
-  player.playerSprite =rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
-  player.playersrc=rl.NewRectangle(0,0,48, 48)
-  player.playerdest=rl.NewRectangle(200,350,100,100)
-  //init npc
-  rogue.npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
-  rogue.npcsrc  =  rl.NewRectangle(0,0,32, 32)
-  rogue.npcdest = rl.NewRectangle(230,500,100,100)
-  //music
-  rl.InitAudioDevice()
-  music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
-  rl.PlayMusicStream(music)
-  musicPaused= true
-  //music
-  //map
-  layer.mapSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
-  layer.tileDest = rl.NewRectangle(0,100,16,16)
-  layer.tileSrc = rl.NewRectangle(0,0,16,16)
-  layer.tileMap=loadMap(mapFile)
-  //map
-
+	player.playerSprite =rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
+	player.playersrc=rl.NewRectangle(0,0,48, 48)
+	player.playerdest=rl.NewRectangle(200,350,100,100)
+	//init npc
+	rogue.npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
+	rogue.npcsrc  =  rl.NewRectangle(0,0,32, 32)
+	rogue.npcdest = rl.NewRectangle(230,500,100,100)
+	//music
+	rl.InitAudioDevice()
+	music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
+	rl.PlayMusicStream(music)
+	musicPaused= true
+	//music
+	//map
+	layer.mapSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
+	layer.tileDest = rl.NewRectangle(0,100,16,16)
+	layer.tileSrc = rl.NewRectangle(0,0,16,16)
+	layer.tileMap=loadMap(mapFile)
 }
 func quit(){
 	rl.UnloadTexture(layer.mapSprite)
@@ -271,8 +257,8 @@ func quit(){
 func main() {
 	for running {
 		input()
-    update()
-    render()
+    	update()
+    	render()
  }
 }
 
