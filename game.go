@@ -14,29 +14,56 @@ const (
 	screenheight = 500
 	playerSpeed = 3
 )
-var (
-	running = true
-	BkgrColor = rl.NewColor(147,211,196,255)
-	grassSprite  rl.Texture2D 
+type Player struct{
 	playerSprite rl.Texture2D
 	playersrc    rl.Rectangle
 	playerdest   rl.Rectangle
+	playerRec rl.Rectangle
+	playerIsMoving bool
+	playerDir int
+	playerFramecnt int
+
+}
+type Npc struct{
+	npcSprite rl.Texture2D 
+	npcsrc       rl.Rectangle
+	npcdest   rl.Rectangle
+
+}
+
+type Map struct{
+	mapSprite    rl.Texture2D
 	tileSrc      rl.Rectangle 
 	tileDest     rl.Rectangle
-	tileMap []int 
+    tileMap []int 
 	srcMap []string
+    Borderpos []  rl.Rectangle  
+
+	
+}
+var (
+		npcSprite rl.Texture2D 
+	npcsrc       rl.Rectangle
+	npcdest   rl.Rectangle
+		mapSprite    rl.Texture2D
+	tileSrc      rl.Rectangle 
+	tileDest     rl.Rectangle
+    tileMap []int 
+	srcMap []string
+	grassSprite rl.Texture2D 
+
+    Borderpos []  rl.Rectangle  
+	running = true
+	BkgrColor = rl.NewColor(147,211,196,255)
+	mapborder bool=true
 	borderlist=[8]int{0,1,2,11,13,22,23,24}
-	Borderpos []  rl.Rectangle  
 	mapW,mapH int
 	music rl.Music
 	musicPaused bool
-	playerFramecnt=0
+	colarea rl.Rectangle
 	Framecount=0
-	playerIsMoving= false
-	playerDir=0
-	val=1
-	mapFile= "/home/fabian/Documents/GO/SproutLands/map/grassmap2.csv"
-
+    mapFile= "/home/fabian/Documents/GO/SproutLands/map/grassmap2.csv"
+    player Player 
 )
 func contains(borders [8]int, element int) bool {
     for _, item := range borders {
@@ -51,46 +78,49 @@ func drawScene(){
 	for i:=1; i<len(tileMap); i++{
 			tileDest.X = tileDest.Width * float32(i %30)
 			tileDest.Y  = tileDest.Height * float32(int(i)/int(30))
-	    tileSrc.X = tileSrc.Width * float32(tileMap[i]) 
+	        tileSrc.X = tileSrc.Width * float32(tileMap[i]) 
 			tileSrc.Y = tileSrc.Height *float32((tileMap[i])/int(grassSprite.Width/int32(tileSrc.Width)))
-			if (contains(borderlist,tileMap[i])==true){
-				border:=rl.NewRectangle(tileDest.X,tileDest.Y,8,8)
-				Borderpos= append(Borderpos ,border)
- 		  	rl.DrawRectangle(int32(border.X),int32(border.Y),int32(border.Width),int32(border.Height),rl.Red)
-  
-			}
-			rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
-      
-  	 }
- 
- 	//rl.DrawTexture(grassSprite,100,100,rl.White)
-	rl.DrawTexturePro(playerSprite,playersrc,playerdest, rl.NewVector2(playerdest.Width,	playerdest.Height),1,rl.Green)
-	rl.DrawRectangle(int32(playerdest.X),int32(playerdest.Y),int32(playerdest.Width),int32(playerdest.Height),rl.Green)
 
+			if (contains(borderlist,tileMap[i])==true){
+				if mapborder{
+				border:=rl.NewRectangle(tileDest.X/2,tileDest.Y/2,16,16)
+				Borderpos= append(Borderpos ,border)
+  				}
+		    rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.Red)
+			}else{
+		    rl.DrawTexturePro(grassSprite,tileSrc,tileDest, rl.NewVector2(tileDest.Width,	tileDest.Height),1,rl.White)
+          }
+ 
+  	 }
+ 	rl.DrawTexturePro(npcSprite,npcsrc,npcdest, rl.NewVector2(npcdest.Width,	npcdest.Height),1,rl.White)
+ 	//rl.DrawTexture(grassSprite,100,100,rl.White)
+	rl.DrawTexturePro(player.playerSprite,player.playersrc,player.playerdest, rl.NewVector2(player.playerdest.Width,player.playerdest.Height),1,rl.White)
+	rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width/2),int32(player.playerRec.Height/2),rl.Green)
+ 
 	/*debugg*/
-	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,playerFramecnt,grassSprite.Width)
+	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,player.playerFramecnt,grassSprite.Width)
 	rl.DrawText(debug_text,150,50,10,rl.White)
   }
 
 func input(){
 	if (rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp)){
-		playerIsMoving = true
-		playerDir=1
+		player.playerIsMoving = true
+		player.playerDir=1
 		
 	}
 	if (rl.IsKeyDown(rl.KeyS) || rl.IsKeyDown(rl.KeyDown)){
-		playerIsMoving = true
-		playerDir=0
+		player.playerIsMoving = true
+		player.playerDir=0
 		
 	}
 	if (rl.IsKeyDown(rl.KeyD) || rl.IsKeyDown(rl.KeyRight) ){
-		playerIsMoving = true
-		playerDir=3
+		player.playerIsMoving = true
+		player.playerDir=3
 		
 	}
 	if (rl.IsKeyDown(rl.KeyL) || rl.IsKeyDown(rl.KeyLeft)){
-		playerIsMoving = true
-		playerDir=2
+		player.playerIsMoving = true
+		player.playerDir=2
 	}
 	if (rl.IsKeyDown(rl.KeyQ)){
 		quit()
@@ -104,59 +134,85 @@ func update(){
 	rl.UpdateMusicStream(music)
 	rl.ResumeMusicStream(music)
 	running= !rl.WindowShouldClose()
-	playersrc.X=playersrc.Width*float32(playerFramecnt)
+	//playersrc.X=playersrc.Width*float32(playerFramecnt)
 	//collision
+	fmt.Println("upd")
+	collision:=false
 	for i:=1;i<len(Borderpos);i++{
-  if(rl.CheckCollisionRecs(playerdest,Borderpos[i])){
-  	switch(playerDir){
+  if(rl.CheckCollisionRecs(player.playerRec,Borderpos[i])){
+  	fmt.Println("col")
+
+  	switch(player.playerDir){
   	case 0:
-		 playerdest.Y-=3
+		 player.playerdest.Y-=player.playerdest.Height
+		 player.playerRec.Y-=player.playerRec.Height
+
     case 1:
-		 playerdest.Y+=3	
+		 player.playerdest.Y+=player.playerdest.Height
+		 player.playerRec.Y+=player.playerRec.Height
+
+
     case 2:
-	  	playerdest.X+=3	
+	  	player.playerdest.X+=player.playerdest.Width
+	  	player.playerRec.X+=player.playerRec.Width
+
     case 3:
-		playerdest.X-=3	
-  	break
+		player.playerdest.X-=player.playerdest.Width
+		player.playerRec.X-=player.playerRec.Width
+
+  	
   }
+  collision=true
+
+  break
  }
 }
 
 	Framecount++
 	if Framecount==65 {Framecount=0}
-	if playerIsMoving{
-	switch(playerDir){
+	if player.playerIsMoving && !collision{
+	switch(player.playerDir){
 	case 0:
-		playerdest.Y+=playerSpeed	
+		player.playerdest.Y+=playerSpeed	
+		player.playerRec.Y+=playerSpeed	
+
   case 1:
-		playerdest.Y-=playerSpeed	
+		player.playerdest.Y-=playerSpeed	
+		player.playerRec.Y+=playerSpeed	
+
   case 2:
-		playerdest.X-=playerSpeed	
+		player.playerdest.X-=playerSpeed	
+		player.playerRec.Y+=playerSpeed	
+
   case 3:
-		playerdest.X+=playerSpeed	
+		player.playerdest.X+=playerSpeed
+		player.playerRec.Y+=playerSpeed	
+	
 	}
 	if  Framecount%8==1 { 
-		playerFramecnt++
+		player.playerFramecnt++
   }  
 
 }
+	player.playerRec=rl.NewRectangle(player.playerdest.X/2,player.playerdest.Y/2,100,100)
+
 //idle animation
-	if !playerIsMoving && Framecount%45==1{
-		if 	playerFramecnt==1{
-			playerFramecnt=0
+	if !player.playerIsMoving && Framecount%45==1{
+		if 	player.playerFramecnt==1{
+			player.playerFramecnt=0
 		}else{
-			playerFramecnt=1
+			player.playerFramecnt=1
 		} 
 
 }
 
 	
-	if playerFramecnt>3  {
-		playerFramecnt=0
+	if player.playerFramecnt>3  {
+		player.playerFramecnt=0
 	}
-	playersrc.X=playersrc.Width*float32(playerFramecnt)
-	playersrc.Y=playersrc.Height*float32(playerDir)
-	playerIsMoving=false
+	player.playersrc.X=player.playersrc.Width*float32(player.playerFramecnt)
+	player.playersrc.Y=player.playersrc.Height*float32(player.playerDir)
+	player.playerIsMoving=false
 
 }
 func render(){		
@@ -194,10 +250,14 @@ func init(){
 	rl.InitWindow(1800, 1450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
+
+  player.playerSprite =rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
+  player.playersrc=rl.NewRectangle(0,0,48, 48)
+  player.playerdest=rl.NewRectangle(200,350,100,100)
   grassSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
-  playerSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
-  playersrc  =  rl.NewRectangle(0,0,48, 48)
-  playerdest = rl.NewRectangle(200,350,100,100)
+   npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
+  npcsrc  =  rl.NewRectangle(0,0,32, 32)
+  npcdest = rl.NewRectangle(230,500,100,100)
   rl.InitAudioDevice()
   music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
   rl.PlayMusicStream(music)
@@ -209,7 +269,7 @@ func init(){
 }
 func quit(){
 	rl.UnloadTexture(grassSprite)
-	rl.UnloadTexture(playerSprite)
+	rl.UnloadTexture(player.playerSprite)
 	rl.CloseWindow()
 }
 
