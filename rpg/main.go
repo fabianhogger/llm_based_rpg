@@ -56,7 +56,11 @@ var (
     mapFile= "/home/fabian/Documents/GO/SproutLands/map/grassmap2.csv"
     player Player 
     layer Layer
-    rogue Npc 
+    rogue Npc
+    textInput string
+    writing bool 
+    dialog bool
+    replychain string
 )
 func contains(borders [8]int, element int) bool {
     for _, item := range borders {
@@ -67,11 +71,24 @@ func contains(borders [8]int, element int) bool {
     return false
 }
 
-func npcReply(character Npc,question string ) {
+func npcReply(character Npc,question string ) string{
 	answer:= ml.Ask(question)
 	fmt.Println(answer)
- 	//character.npcPrompt+
+	return answer
+ }
+func readInput()  {
+	writing=true
+	for (!rl.IsKeyDown(rl.KeyEnter)){
+	char:=rl.GetCharPressed()
+	if char>=32 && char<=132{
+		textInput+=string(char)
+		fmt.Println(textInput)
+	}
+	}
+	reply:=npcReply(rogue,"I ask you "+textInput+" reply like a small town farmer in rpg game with a short phrase")
+	replychain+= "Farmer:"+reply+"\n" 
 }
+
 func drawLayer(){
 	for i:=1; i<len(layer.tileMap); i++{
 			layer.tileDest.X = layer.tileDest.Width * float32(i %30)
@@ -100,30 +117,36 @@ func drawScene(){
  	rl.DrawTexturePro(rogue.npcSprite,rogue.npcsrc,rogue.npcdest, rl.NewVector2(rogue.npcdest.Width,rogue.npcdest.Height),1,rl.White)
  	//rl.DrawTexture(grassSprite,100,100,rl.White)
 	rl.DrawTexturePro(player.playerSprite,player.playersrc,player.playerdest, rl.NewVector2(player.playerdest.Width,player.playerdest.Height),1,rl.White)
-	rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width/2),int32(player.playerRec.Height/2),rl.Green)
- 
+	rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width),int32(player.playerRec.Height),rl.Red)
+	rl.DrawRectangle(int32(rogue.npcdest.X),int32(rogue.npcdest.Y),100,100,rl.Blue)
+ 	if dialog {	
+ 		rl.DrawRectangle(150,int32(rl.GetScreenHeight()-90*rl.GetScreenHeight()/100),int32(rl.GetScreenWidth()),200,rl.Black)
+		if writing {rl.DrawText(">"+textInput,150,int32(rl.GetScreenHeight()-90*rl.GetScreenHeight()/100),50,rl.White)}
+		rl.DrawText(replychain,150,int32(rl.GetScreenHeight()-80*rl.GetScreenHeight()/100),50,rl.White)
+ 	}
+
 	/*debugg*/
 	debug_text:=fmt.Sprintf("Framecount, %d,playerframe %d, entered if %d",Framecount,player.playerFramecnt,layer.mapSprite.Width)
 	rl.DrawText(debug_text,150,50,10,rl.White)
   }
 
 func input(){
-	if (rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp)){
+	if (rl.IsKeyDown(rl.KeyUp)){
 		player.playerIsMoving = true
 		player.playerDir=1
 		
 	}
-	if (rl.IsKeyDown(rl.KeyS) || rl.IsKeyDown(rl.KeyDown)){
+	if (rl.IsKeyDown(rl.KeyDown)){
 		player.playerIsMoving = true
 		player.playerDir=0
 		
 	}
-	if (rl.IsKeyDown(rl.KeyD) || rl.IsKeyDown(rl.KeyRight) ){
+	if (rl.IsKeyDown(rl.KeyRight) ){
 		player.playerIsMoving = true
 		player.playerDir=3
 		
 	}
-	if (rl.IsKeyDown(rl.KeyL) || rl.IsKeyDown(rl.KeyLeft)){
+	if (rl.IsKeyDown(rl.KeyLeft)){
 		player.playerIsMoving = true
 		player.playerDir=2
 	}
@@ -141,12 +164,18 @@ func update(){
 	running= !rl.WindowShouldClose()
 	//playersrc.X=playersrc.Width*float32(playerFramecnt)
 	//collision
-	fmt.Println("upd")
 	collision:=false
+	if(rl.CheckCollisionRecs(player.playerRec,rogue.npcdest)){
+		dialog=true 
+		go readInput()
+		fmt.Println("rogue collision")
+	  	player.playerdest.X-=player.playerdest.Width
+	  	player.playerRec.X-=player.playerdest.Width
+
+	}
 	for i:=1;i<len(layer.Borderpos);i++{
   		if(rl.CheckCollisionRecs(player.playerRec,layer.Borderpos[i])){
-	  		fmt.Println("collllll")
-		  	switch(player.playerDir){
+ 		  	switch(player.playerDir){
 			  	case 0:
 					 player.playerdest.Y-=player.playerdest.Height
 					 player.playerRec.Y-=player.playerRec.Height
@@ -175,21 +204,23 @@ func update(){
 
 		  	case 1:
 				player.playerdest.Y-=playerSpeed	
-				player.playerRec.Y+=playerSpeed	
+				player.playerRec.Y-=playerSpeed	
 
 		  	case 2:
 				player.playerdest.X-=playerSpeed	
-				player.playerRec.Y+=playerSpeed	
+				player.playerRec.X-=playerSpeed	
 
 		  	case 3:
 				player.playerdest.X+=playerSpeed
-				player.playerRec.Y+=playerSpeed	
+				player.playerRec.X+=playerSpeed	
 		
 		}
 	if Framecount%8==1 { 
 		player.playerFramecnt++
   	}  
 	}
+
+
 	//idle animation
 	if !player.playerIsMoving && Framecount%45==1{
 		if 	player.playerFramecnt==1{
@@ -234,16 +265,17 @@ func loadMap(mapFile string) []int{
 }
 
 func init(){	
-	rl.InitWindow(800, 450, "raylib [core] example - basic window")
+	rl.InitWindow(1800, 1450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
 	player.playerSprite =rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
 	player.playersrc=rl.NewRectangle(0,0,48, 48)
 	player.playerdest=rl.NewRectangle(200,350,100,100)
+	player.playerRec=rl.NewRectangle(200,350,100,100)
 	//init npc
 	rogue.npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
 	rogue.npcsrc  =  rl.NewRectangle(0,0,32, 32)
-	rogue.npcdest = rl.NewRectangle(230,500,100,100)
+	rogue.npcdest = rl.NewRectangle(230,400,100,100)
 	//music
 	rl.InitAudioDevice()
 	music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
@@ -255,11 +287,12 @@ func init(){
 	layer.tileDest = rl.NewRectangle(0,100,16,16)
 	layer.tileSrc = rl.NewRectangle(0,0,16,16)
 	layer.tileMap=loadMap(mapFile)
-	go npcReply(rogue,"I ask you how are you doing, reply like a small town farmer in rpg game with a short phrase")
+	replychain=""
  }
 func quit(){
 	rl.UnloadTexture(layer.mapSprite)
 	rl.UnloadTexture(player.playerSprite)
+	rl.UnloadTexture(rogue.npcSprite)
 	rl.CloseWindow()
 }
 
