@@ -30,6 +30,7 @@ type Npc struct{
 	npcsrc       rl.Rectangle
 	npcdest   rl.Rectangle
 	npcPrompt string
+	npcRec rl.Rectangle
 
 }
 
@@ -102,7 +103,7 @@ func drawLayer(){
 				border:=rl.NewRectangle(layer.tileDest.X/2,layer.tileDest.Y/2,16,16)
 				borderArr= append(borderArr ,border)
   				}
-		    rl.DrawTexturePro(layer.mapSprite,layer.tileSrc,layer.tileDest, rl.NewVector2(layer.tileDest.Width,	layer.tileDest.Height),1,rl.Red)
+		    rl.DrawTexturePro(layer.mapSprite,layer.tileSrc,layer.tileDest, rl.NewVector2(layer.tileDest.Width,	layer.tileDest.Height),1,rl.White)
 			}else{
 		    rl.DrawTexturePro(layer.mapSprite,layer.tileSrc,layer.tileDest, rl.NewVector2(layer.tileDest.Width,	layer.tileDest.Height),1,rl.White)
           }
@@ -117,12 +118,12 @@ func drawScene(){
  	rl.DrawTexturePro(rogue.npcSprite,rogue.npcsrc,rogue.npcdest, rl.NewVector2(rogue.npcdest.Width,rogue.npcdest.Height),1,rl.White)
  	//rl.DrawTexture(grassSprite,100,100,rl.White)
 	rl.DrawTexturePro(player.playerSprite,player.playersrc,player.playerdest, rl.NewVector2(player.playerdest.Width,player.playerdest.Height),1,rl.White)
-	rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width),int32(player.playerRec.Height),rl.Red)
-	rl.DrawRectangle(int32(rogue.npcdest.X),int32(rogue.npcdest.Y),100,100,rl.Blue)
+	//rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width),int32(player.playerRec.Height),rl.Red)
+	//rl.DrawRectangle(int32(rogue.npcRec.X),int32(rogue.npcRec.Y),int32(rogue.npcRec.Width),int32(rogue.npcRec.Height),rl.Blue)
  	if dialog {	
- 		rl.DrawRectangle(150,int32(rl.GetScreenHeight()-90*rl.GetScreenHeight()/100),int32(rl.GetScreenWidth()),200,rl.Black)
-		if writing {rl.DrawText(">"+textInput,150,int32(rl.GetScreenHeight()-90*rl.GetScreenHeight()/100),50,rl.White)}
-		rl.DrawText(replychain,150,int32(rl.GetScreenHeight()-80*rl.GetScreenHeight()/100),50,rl.White)
+ 		rl.DrawRectangle(150,int32(rl.GetScreenHeight()-1000),int32(rl.GetScreenWidth()),200,rl.Black)
+		if writing {rl.DrawText(">"+textInput,150,int32(rl.GetScreenHeight()-1000),50,rl.White)}
+		rl.DrawText(replychain,150,int32(rl.GetScreenHeight()-920),50,rl.White)
  	}
 
 	/*debugg*/
@@ -165,10 +166,9 @@ func update(){
 	//playersrc.X=playersrc.Width*float32(playerFramecnt)
 	//collision
 	collision:=false
-	if(rl.CheckCollisionRecs(player.playerRec,rogue.npcdest)){
+	if(rl.CheckCollisionRecs(player.playerRec,rogue.npcRec)){
 		dialog=true 
 		go readInput()
-		fmt.Println("rogue collision")
 	  	player.playerdest.X-=player.playerdest.Width
 	  	player.playerRec.X-=player.playerdest.Width
 
@@ -271,11 +271,12 @@ func init(){
 	player.playerSprite =rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
 	player.playersrc=rl.NewRectangle(0,0,48, 48)
 	player.playerdest=rl.NewRectangle(200,350,100,100)
-	player.playerRec=rl.NewRectangle(200,350,100,100)
+	player.playerRec=rl.NewRectangle(135,280,30,30)
 	//init npc
 	rogue.npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
 	rogue.npcsrc  =  rl.NewRectangle(0,0,32, 32)
 	rogue.npcdest = rl.NewRectangle(230,400,100,100)
+	rogue.npcRec= rl.NewRectangle(160,320,40,70)
 	//music
 	rl.InitAudioDevice()
 	music=rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
