@@ -23,7 +23,8 @@ func Ask(question string) string {
 
     resp, err := http.Post("http://localhost:5000/generate", "application/json", bytes.NewBuffer(jsonData))
     if err != nil {
-        log.Fatal(err)
+        log.Println(err)
+        return "..."
     }
     defer resp.Body.Close()
     body, err := ioutil.ReadAll(resp.Body)
@@ -41,7 +42,6 @@ func Ask(question string) string {
     }
 
     // Print the parsed response
-    fmt.Printf("Message: %s\n", response.Message)
    return string(response.Message)
 }
  

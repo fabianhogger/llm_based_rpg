@@ -9,6 +9,7 @@ import (
 	  "os"
 	  "strings"
 	  "strconv"
+	  "log"
 )
 const (
 	screenWidth = 480
@@ -62,6 +63,7 @@ var (
     writing bool 
     dialog bool
     replychain string
+    loggerFileName = "/home/fabian/Documents/GO/SproutLands/logger.text"
 )
 func contains(borders [8]int, element int) bool {
     for _, item := range borders {
@@ -74,7 +76,7 @@ func contains(borders [8]int, element int) bool {
 
 func npcReply(character Npc,question string ) string{
 	answer:= ml.Ask(question)
-	fmt.Println(answer)
+	log.Println(answer)
 	return answer
  }
 func readInput()  {
@@ -83,11 +85,13 @@ func readInput()  {
 	char:=rl.GetCharPressed()
 	if char>=32 && char<=132{
 		textInput+=string(char)
-		fmt.Println(textInput)
+		
 	}
 	}
+	log.Println(textInput)
 	reply:=npcReply(rogue,"I ask you "+textInput+" reply like a small town farmer in rpg game with a short phrase")
-	replychain+= "Farmer:"+reply+"\n" 
+	replychain+= ">"+textInput+"\n" +"Farmer:"+reply+"\n" 
+	writing=false
 }
 
 func drawLayer(){
@@ -122,8 +126,10 @@ func drawScene(){
 	//rl.DrawRectangle(int32(rogue.npcRec.X),int32(rogue.npcRec.Y),int32(rogue.npcRec.Width),int32(rogue.npcRec.Height),rl.Blue)
  	if dialog {	
  		rl.DrawRectangle(150,int32(rl.GetScreenHeight()-1000),int32(rl.GetScreenWidth()),200,rl.Black)
-		if writing {rl.DrawText(">"+textInput,150,int32(rl.GetScreenHeight()-1000),50,rl.White)}
-		rl.DrawText(replychain,150,int32(rl.GetScreenHeight()-920),50,rl.White)
+		if writing {rl.DrawText(">"+textInput,150,int32(rl.GetScreenHeight()-1000),50,rl.White)
+		}else{
+			rl.DrawText(replychain,150,int32(rl.GetScreenHeight()-1000),50,rl.White)
+		}
  	}
 
 	/*debugg*/
@@ -248,7 +254,7 @@ func render(){
 func loadMap(mapFile string) []int{
 	file,err:= ioutil.ReadFile(mapFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		os.Exit(1)
 	}
 	remNewLines := strings.Replace(string(file),"\n",",",-1)
@@ -265,6 +271,12 @@ func loadMap(mapFile string) []int{
 }
 
 func init(){	
+	 logFile, err := os.OpenFile(loggerFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+ 	 if err != nil {
+  		log.Println("Unable to create Logger file:", err.Error())
+  		return
+ 	}
+ 	log.SetOutput(logFile)
 	rl.InitWindow(1800, 1450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
