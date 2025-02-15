@@ -9,6 +9,7 @@ import (
 	ml "rpg/prompt_model"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -80,6 +81,7 @@ func npcReply(character Npc, question string) string {
 	return answer
 }
 func readInput() {
+	time.Sleep(1 * time.Second)
 	writing = true
 	for !rl.IsKeyDown(rl.KeyEnter) {
 		char := rl.GetCharPressed()
@@ -91,7 +93,9 @@ func readInput() {
 	log.Println(textInput)
 	reply := npcReply(rogue, "I ask you "+textInput+" reply like a small town farmer in rpg game with a short phrase")
 	replychain += ">" + textInput + "\n" + "Farmer:" + reply + "\n"
-	writing = false
+	writing= false
+	textInput=""
+
 }
 
 func drawLayer() {
@@ -141,30 +145,36 @@ func drawScene() {
 }
 
 func input() {
-	if rl.IsKeyDown(rl.KeyUp) {
-		player.playerIsMoving = true
-		player.playerDir = 1
+	if dialog{
+		if rl.IsKeyPressed(rl.KeyR)  {
+			go readInput()
+		}  else if rl.IsKeyPressed(rl.KeyQ)  {
+			replychain=""
+			dialog=false
+		}
+	}else{
+		if rl.IsKeyDown(rl.KeyUp) {
+			player.playerIsMoving = true
+			player.playerDir = 1
 
-	}
-	if rl.IsKeyDown(rl.KeyDown) {
-		player.playerIsMoving = true
-		player.playerDir = 0
+		}
+		if rl.IsKeyDown(rl.KeyDown) {
+			player.playerIsMoving = true
+			player.playerDir = 0
 
-	}
-	if rl.IsKeyDown(rl.KeyRight) {
-		player.playerIsMoving = true
-		player.playerDir = 3
+		}
+		if rl.IsKeyDown(rl.KeyRight) {
+			player.playerIsMoving = true
+			player.playerDir = 3
 
-	}
-	if rl.IsKeyDown(rl.KeyLeft) {
-		player.playerIsMoving = true
-		player.playerDir = 2
-	}
-	if rl.IsKeyDown(rl.KeyQ) {
-		quit()
-	}
-	if rl.IsKeyPressed(rl.KeyP) {
-		musicPaused = !musicPaused
+		}
+		if rl.IsKeyDown(rl.KeyLeft) {
+			player.playerIsMoving = true
+			player.playerDir = 2
+		}
+		if rl.IsKeyPressed(rl.KeyP) {
+			musicPaused = !musicPaused
+		}
 	}
 }
 
@@ -175,8 +185,9 @@ func update() {
 	//playersrc.X=playersrc.Width*float32(playerFramecnt)
 	//collision
 	collision := false
-	if rl.CheckCollisionRecs(player.playerRec, rogue.npcRec) {
+	if rl.CheckCollisionRecs(player.playerRec, rogue.npcRec) && !writing {
 		dialog = true
+		log.Println("coliding")
 		go readInput()
 		player.playerdest.X -= player.playerdest.Width
 		player.playerRec.X -= player.playerdest.Width
@@ -314,7 +325,7 @@ func quit() {
 
 func main() {
 	for running {
-		input()
+		input()  
 		update()
 		render()
 	}
