@@ -64,6 +64,7 @@ var (
 	dialog         bool
 	replychain     string
 	loggerFileName = "/home/fabian/Documents/GO/SproutLands/logger.text"
+	chatborder     = 0
 )
 
 func contains(borders [8]int, element int) bool {
@@ -91,10 +92,11 @@ func readInput() {
 		}
 	}
 	log.Println(textInput)
+	chatborder += 100
 	reply := npcReply(rogue, "I ask you "+textInput+" reply like a small town farmer in rpg game with a short phrase")
 	replychain += ">" + textInput + "\n" + "Farmer:" + reply + "\n"
-	writing= false
-	textInput=""
+	writing = false
+	textInput = ""
 
 }
 
@@ -131,7 +133,7 @@ func drawScene() {
 	//rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width),int32(player.playerRec.Height),rl.Red)
 	//rl.DrawRectangle(int32(rogue.npcRec.X),int32(rogue.npcRec.Y),int32(rogue.npcRec.Width),int32(rogue.npcRec.Height),rl.Blue)
 	if dialog {
-		rl.DrawRectangle(150, int32(rl.GetScreenHeight()-1000), int32(rl.GetScreenWidth()), 200, rl.Black)
+		rl.DrawRectangle(150, 450, int32(200+chatborder), int32(50+chatborder), rl.Black)
 		if writing {
 			rl.DrawText(">"+textInput, 150, int32(rl.GetScreenHeight()-1000), 50, rl.White)
 		} else {
@@ -145,14 +147,15 @@ func drawScene() {
 }
 
 func input() {
-	if dialog{
-		if rl.IsKeyPressed(rl.KeyR)  {
+	if dialog {
+		if rl.IsKeyPressed(rl.KeyR) && !writing {
 			go readInput()
-		}  else if rl.IsKeyPressed(rl.KeyQ)  {
-			replychain=""
-			dialog=false
+		} else if rl.IsKeyPressed(rl.KeyQ) && !writing {
+			replychain = ""
+			dialog = false
+			chatborder = 0
 		}
-	}else{
+	} else {
 		if rl.IsKeyDown(rl.KeyUp) {
 			player.playerIsMoving = true
 			player.playerDir = 1
@@ -325,7 +328,7 @@ func quit() {
 
 func main() {
 	for running {
-		input()  
+		input()
 		update()
 		render()
 	}
