@@ -329,25 +329,25 @@ func init() {
 	rl.InitWindow(1800, 1450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
-	player.playerSprite = rl.LoadTexture("./SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
+	player.playerSprite = rl.LoadTexture("./Basicpack/Characters/BasicCharakter.png")
 	player.playersrc = rl.NewRectangle(0, 0, 48, 48)
 	player.playerdest = rl.NewRectangle(200, 350, 100, 100)
 	// Center collision box within sprite (200 + 35, 350 + 35, smaller box)
 	player.playerRec = rl.NewRectangle(235, 385, 30, 30)
 	//init npc
-	rogue.npcSprite = rl.LoadTexture("./SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
+	rogue.npcSprite = rl.LoadTexture("./Basicpack/Characters/rogue.png")
 	rogue.npcsrc = rl.NewRectangle(0, 0, 32, 32)
 	rogue.npcdest = rl.NewRectangle(230, 400, 100, 100)
 	// Center collision box within sprite (230 + 30, 400 + 30, smaller box)
 	rogue.npcRec = rl.NewRectangle(260, 430, 40, 40)
 	//music
 	rl.InitAudioDevice()
-	music = rl.LoadMusicStream("./SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
+	music = rl.LoadMusicStream("./Basicpack/Our-Mountain_v003.mp3")
 	rl.PlayMusicStream(music)
 	musicPaused = true
 	//music
 	//map
-	layer.mapSprite = rl.LoadTexture("./SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
+	layer.mapSprite = rl.LoadTexture("./Basicpack/Tilesets/Grass.png")
 	layer.tileDest = rl.NewRectangle(0, 100, 16, 16)
 	layer.tileSrc = rl.NewRectangle(0, 0, 16, 16)
 	layer.tileMap = loadMap(mapFile)
