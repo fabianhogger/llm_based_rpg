@@ -78,6 +78,14 @@ func contains(borders [8]int, element int) bool {
 	return false
 }
 
+func getCurrentDir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "unknown"
+	}
+	return dir
+}
+
 func npcReply(character Npc, question string) string {
 	answer := ml.Ask(question)
 	log.Println(answer)
@@ -303,6 +311,8 @@ func render() {
 func loadMap(mapFile string) []int {
 	file, err := ioutil.ReadFile(mapFile)
 	if err != nil {
+		log.Printf("ERROR: Failed to load map file '%s': %v\n", mapFile, err)
+		log.Printf("Current working directory: %s\n", getCurrentDir())
 		log.Fatal(err)
 		os.Exit(1)
 	}
