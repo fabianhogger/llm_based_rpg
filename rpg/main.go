@@ -228,7 +228,7 @@ func update() {
 			player.playerRec.X -= player.playerdest.Width
 		}
 	}
-	for i := 1; i < len(layer.Borderpos); i++ {
+	for i := 0; i < len(layer.Borderpos); i++ {
 		if rl.CheckCollisionRecs(player.playerRec, layer.Borderpos[i]) {
 			switch player.playerDir {
 			case 0:
