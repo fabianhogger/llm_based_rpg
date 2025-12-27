@@ -55,15 +55,17 @@ var (
 	musicPaused    bool
 	colarea        rl.Rectangle
 	Framecount     = 0
-	mapFile        = "/home/fabian/Documents/GO/SproutLands/map/grassmap2.csv"
+	mapFile        = "./map/grassmap2.csv"
 	player         Player
 	layer          Layer
 	rogue          Npc
 	textInput      string
 	writing        bool
 	dialog         bool
+	dialogActive   bool
+	dialogCooldown int
 	replychain     string
-	loggerFileName = "/home/fabian/Documents/GO/SproutLands/logger.text"
+	loggerFileName = "./logger.text"
 	chatborder     = 0
 )
 
@@ -82,45 +84,53 @@ func npcReply(character Npc, question string) string {
 	return answer
 }
 func readInput() {
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
 	writing = true
 	for !rl.IsKeyDown(rl.KeyEnter) {
-		char := rl.GetCharPressed()
-		if char >= 32 && char <= 132 {
-			textInput += string(char)
+		// Handle backspace
+		if rl.IsKeyPressed(rl.KeyBackspace) && len(textInput) > 0 {
+			textInput = textInput[:len(textInput)-1]
+		}
 
+		// Get character input
+		char := rl.GetCharPressed()
+		if char >= 32 && char <= 126 {
+			textInput += string(char)
 		}
 	}
-	log.Println(textInput)
-	chatborder += 100
-	reply := npcReply(rogue, "I ask you "+textInput+" reply like a small town farmer in rpg game with a short phrase")
-	replychain += ">" + textInput + "\n" + "Farmer:" + reply + "\n"
-	writing = false
-	textInput = ""
 
+	if textInput != "" {
+		log.Println(textInput)
+		chatborder += 100
+		reply := npcReply(rogue, "I ask you "+textInput+" reply like a small town farmer in rpg game with a short phrase")
+		replychain += ">" + textInput + "\n" + "Farmer:" + reply + "\n"
+	}
+
+	writing = false
+	dialogActive = false
+	textInput = ""
 }
 
 func drawLayer() {
+	var borderArr []rl.Rectangle
+
 	for i := 1; i < len(layer.tileMap); i++ {
 		layer.tileDest.X = layer.tileDest.Width * float32(i%30)
 		layer.tileDest.Y = layer.tileDest.Height * float32(int(i)/int(30))
 		layer.tileSrc.X = layer.tileSrc.Width * float32(layer.tileMap[i])
 		layer.tileSrc.Y = layer.tileSrc.Height * float32((layer.tileMap[i])/int(layer.mapSprite.Width/int32(layer.tileSrc.Width)))
-		var borderArr []rl.Rectangle
+
 		if contains(borderlist, layer.tileMap[i]) {
 			if mapborder {
-
 				border := rl.NewRectangle(layer.tileDest.X/2, layer.tileDest.Y/2, 16, 16)
 				borderArr = append(borderArr, border)
 			}
-			rl.DrawTexturePro(layer.mapSprite, layer.tileSrc, layer.tileDest, rl.NewVector2(layer.tileDest.Width, layer.tileDest.Height), 1, rl.White)
-		} else {
-			rl.DrawTexturePro(layer.mapSprite, layer.tileSrc, layer.tileDest, rl.NewVector2(layer.tileDest.Width, layer.tileDest.Height), 1, rl.White)
 		}
-		if mapborder {
-			layer.Borderpos = borderArr
-		}
+		rl.DrawTexturePro(layer.mapSprite, layer.tileSrc, layer.tileDest, rl.NewVector2(layer.tileDest.Width, layer.tileDest.Height), 1, rl.White)
+	}
 
+	if mapborder {
+		layer.Borderpos = borderArr
 	}
 }
 func drawScene() {
@@ -138,6 +148,7 @@ func drawScene() {
 			rl.DrawText(">"+textInput, 150, int32(rl.GetScreenHeight()-1000), 50, rl.White)
 		} else {
 			rl.DrawText(replychain, 150, int32(rl.GetScreenHeight()-1000), 50, rl.White)
+			rl.DrawText("Press R to talk, Q to exit", 150, 420, 20, rl.Yellow)
 		}
 	}
 
@@ -148,11 +159,13 @@ func drawScene() {
 
 func input() {
 	if dialog {
-		if rl.IsKeyPressed(rl.KeyR) && !writing {
+		if rl.IsKeyPressed(rl.KeyR) && !writing && !dialogActive {
 			go readInput()
 		} else if rl.IsKeyPressed(rl.KeyQ) && !writing {
 			replychain = ""
 			dialog = false
+			dialogActive = false
+			dialogCooldown = 30
 			chatborder = 0
 		}
 	} else {
@@ -185,16 +198,35 @@ func update() {
 	rl.UpdateMusicStream(music)
 	rl.ResumeMusicStream(music)
 	running = !rl.WindowShouldClose()
-	//playersrc.X=playersrc.Width*float32(playerFramecnt)
+
+	// Update dialog cooldown
+	if dialogCooldown > 0 {
+		dialogCooldown--
+	}
+
 	//collision
 	collision := false
-	if rl.CheckCollisionRecs(player.playerRec, rogue.npcRec) && !writing {
+	if rl.CheckCollisionRecs(player.playerRec, rogue.npcRec) && !dialogActive && dialogCooldown == 0 {
+		dialogActive = true
 		dialog = true
-		log.Println("coliding")
+		log.Println("collision detected - starting dialog")
 		go readInput()
-		player.playerdest.X -= player.playerdest.Width
-		player.playerRec.X -= player.playerdest.Width
 
+		// Push player back based on direction
+		switch player.playerDir {
+		case 0: // down
+			player.playerdest.Y -= player.playerdest.Height
+			player.playerRec.Y -= player.playerRec.Height
+		case 1: // up
+			player.playerdest.Y += player.playerdest.Height
+			player.playerRec.Y += player.playerRec.Height
+		case 2: // left
+			player.playerdest.X += player.playerdest.Width
+			player.playerRec.X += player.playerRec.Width
+		case 3: // right
+			player.playerdest.X -= player.playerdest.Width
+			player.playerRec.X -= player.playerdest.Width
+		}
 	}
 	for i := 1; i < len(layer.Borderpos); i++ {
 		if rl.CheckCollisionRecs(player.playerRec, layer.Borderpos[i]) {
@@ -297,23 +329,25 @@ func init() {
 	rl.InitWindow(1800, 1450, "raylib [core] example - basic window")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
-	player.playerSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
+	player.playerSprite = rl.LoadTexture("./SproutLands _ Sprites _ Basicpack/Characters/Basic Charakter Spritesheet.png")
 	player.playersrc = rl.NewRectangle(0, 0, 48, 48)
 	player.playerdest = rl.NewRectangle(200, 350, 100, 100)
-	player.playerRec = rl.NewRectangle(135, 280, 30, 30)
+	// Center collision box within sprite (200 + 35, 350 + 35, smaller box)
+	player.playerRec = rl.NewRectangle(235, 385, 30, 30)
 	//init npc
-	rogue.npcSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
+	rogue.npcSprite = rl.LoadTexture("./SproutLands _ Sprites _ Basicpack/Characters/rogue.png")
 	rogue.npcsrc = rl.NewRectangle(0, 0, 32, 32)
 	rogue.npcdest = rl.NewRectangle(230, 400, 100, 100)
-	rogue.npcRec = rl.NewRectangle(160, 320, 40, 70)
+	// Center collision box within sprite (230 + 30, 400 + 30, smaller box)
+	rogue.npcRec = rl.NewRectangle(260, 430, 40, 40)
 	//music
 	rl.InitAudioDevice()
-	music = rl.LoadMusicStream("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
+	music = rl.LoadMusicStream("./SproutLands _ Sprites _ Basicpack/Our-Mountain_v003.mp3")
 	rl.PlayMusicStream(music)
 	musicPaused = true
 	//music
 	//map
-	layer.mapSprite = rl.LoadTexture("/home/fabian/Documents/GO/SproutLands/SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
+	layer.mapSprite = rl.LoadTexture("./SproutLands _ Sprites _ Basicpack/Tilesets/Grass.png")
 	layer.tileDest = rl.NewRectangle(0, 100, 16, 16)
 	layer.tileSrc = rl.NewRectangle(0, 0, 16, 16)
 	layer.tileMap = loadMap(mapFile)
