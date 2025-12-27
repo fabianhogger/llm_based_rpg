@@ -55,7 +55,7 @@ var (
 	musicPaused    bool
 	colarea        rl.Rectangle
 	Framecount     = 0
-	mapFile        = "./map/grassmap2.csv"
+	mapFile        = "../map/grassmap2.csv"
 	player         Player
 	layer          Layer
 	rogue          Npc
