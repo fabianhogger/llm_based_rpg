@@ -122,7 +122,7 @@ func readInput() {
 func drawLayer() {
 	var borderArr []rl.Rectangle
 
-	for i := 1; i < len(layer.tileMap); i++ {
+	for i := 0; i < len(layer.tileMap); i++ {
 		layer.tileDest.X = layer.tileDest.Width * float32(i%30)
 		layer.tileDest.Y = layer.tileDest.Height * float32(int(i)/int(30))
 		layer.tileSrc.X = layer.tileSrc.Width * float32(layer.tileMap[i])
@@ -130,11 +130,11 @@ func drawLayer() {
 
 		if contains(borderlist, layer.tileMap[i]) {
 			if mapborder {
-				border := rl.NewRectangle(layer.tileDest.X/2, layer.tileDest.Y/2, 16, 16)
+				border := rl.NewRectangle(layer.tileDest.X, layer.tileDest.Y, layer.tileDest.Width, layer.tileDest.Height)
 				borderArr = append(borderArr, border)
 			}
 		}
-		rl.DrawTexturePro(layer.mapSprite, layer.tileSrc, layer.tileDest, rl.NewVector2(layer.tileDest.Width, layer.tileDest.Height), 1, rl.White)
+		rl.DrawTexturePro(layer.mapSprite, layer.tileSrc, layer.tileDest, rl.NewVector2(0, 0), 0, rl.White)
 	}
 
 	if mapborder {
