@@ -128,7 +128,9 @@ func drawLayer() {
 		layer.tileSrc.X = layer.tileSrc.Width * float32(layer.tileMap[i])
 		layer.tileSrc.Y = layer.tileSrc.Height * float32((layer.tileMap[i])/int(layer.mapSprite.Width/int32(layer.tileSrc.Width)))
 
-		if contains(borderlist, layer.tileMap[i]) {
+		// Invert logic: block tiles NOT in borderlist (cyan background)
+		// Allow walking on tiles IN borderlist (green grass)
+		if !contains(borderlist, layer.tileMap[i]) {
 			if mapborder {
 				border := rl.NewRectangle(layer.tileDest.X, layer.tileDest.Y, layer.tileDest.Width, layer.tileDest.Height)
 				borderArr = append(borderArr, border)
@@ -230,34 +232,34 @@ func update() {
 		// Push player back based on direction
 		switch player.playerDir {
 		case 0: // down
-			player.playerdest.Y -= player.playerdest.Height
-			player.playerRec.Y -= player.playerRec.Height
+			player.playerdest.Y -= playerSpeed
+			player.playerRec.Y -= playerSpeed
 		case 1: // up
-			player.playerdest.Y += player.playerdest.Height
-			player.playerRec.Y += player.playerRec.Height
+			player.playerdest.Y += playerSpeed
+			player.playerRec.Y += playerSpeed
 		case 2: // left
-			player.playerdest.X += player.playerdest.Width
-			player.playerRec.X += player.playerRec.Width
+			player.playerdest.X += playerSpeed
+			player.playerRec.X += playerSpeed
 		case 3: // right
-			player.playerdest.X -= player.playerdest.Width
-			player.playerRec.X -= player.playerdest.Width
+			player.playerdest.X -= playerSpeed
+			player.playerRec.X -= playerSpeed
 		}
 	}
 	for i := 0; i < len(layer.Borderpos); i++ {
 		if rl.CheckCollisionRecs(player.playerRec, layer.Borderpos[i]) {
 			switch player.playerDir {
-			case 0:
-				player.playerdest.Y -= player.playerdest.Height
-				player.playerRec.Y -= player.playerRec.Height
-			case 1:
-				player.playerdest.Y += player.playerdest.Height
-				player.playerRec.Y += player.playerRec.Height
-			case 2:
-				player.playerdest.X += player.playerdest.Width
-				player.playerRec.X += player.playerRec.Width
-			case 3:
-				player.playerdest.X -= player.playerdest.Width
-				player.playerRec.X -= player.playerRec.Width
+			case 0: // down
+				player.playerdest.Y -= playerSpeed
+				player.playerRec.Y -= playerSpeed
+			case 1: // up
+				player.playerdest.Y += playerSpeed
+				player.playerRec.Y += playerSpeed
+			case 2: // left
+				player.playerdest.X += playerSpeed
+				player.playerRec.X += playerSpeed
+			case 3: // right
+				player.playerdest.X -= playerSpeed
+				player.playerRec.X -= playerSpeed
 			}
 			collision = true
 			break
