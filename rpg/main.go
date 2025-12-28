@@ -145,11 +145,18 @@ func drawScene() {
 	drawLayer()
 
 	mapborder = false
-	rl.DrawTexturePro(rogue.npcSprite, rogue.npcsrc, rogue.npcdest, rl.NewVector2(rogue.npcdest.Width, rogue.npcdest.Height), 1, rl.White)
+	rl.DrawTexturePro(rogue.npcSprite, rogue.npcsrc, rogue.npcdest, rl.NewVector2(0, 0), 0, rl.White)
 	//rl.DrawTexture(grassSprite,100,100,rl.White)
-	rl.DrawTexturePro(player.playerSprite, player.playersrc, player.playerdest, rl.NewVector2(player.playerdest.Width, player.playerdest.Height), 1, rl.White)
-	//rl.DrawRectangle(int32(player.playerRec.X ),int32(player.playerRec.Y),int32(player.playerRec.Width),int32(player.playerRec.Height),rl.Red)
-	//rl.DrawRectangle(int32(rogue.npcRec.X),int32(rogue.npcRec.Y),int32(rogue.npcRec.Width),int32(rogue.npcRec.Height),rl.Blue)
+	rl.DrawTexturePro(player.playerSprite, player.playersrc, player.playerdest, rl.NewVector2(0, 0), 0, rl.White)
+
+	// Debug: Draw collision boxes and borders
+	rl.DrawRectangle(int32(player.playerRec.X), int32(player.playerRec.Y), int32(player.playerRec.Width), int32(player.playerRec.Height), rl.Red)
+	rl.DrawRectangle(int32(rogue.npcRec.X), int32(rogue.npcRec.Y), int32(rogue.npcRec.Width), int32(rogue.npcRec.Height), rl.Blue)
+
+	// Draw all border collision boxes
+	for _, border := range layer.Borderpos {
+		rl.DrawRectangleLines(int32(border.X), int32(border.Y), int32(border.Width), int32(border.Height), rl.Yellow)
+	}
 	if dialog {
 		rl.DrawRectangle(150, 450, int32(200+chatborder), int32(50+chatborder), rl.Black)
 		if writing {
